@@ -1,0 +1,13 @@
+# dependencies
+node_modules/
+.pnpm-store/
+# builds
+.next/
+out/
+dist/
+build/
+.turbo/
+coverage/
+# env & misc
+.env*
+.DS_Store
