@@ -1,19 +1,26 @@
 "use client";
 import { useAccounts } from "@/hooks/useAccounts";
-import { useForm } from "react-hook-form";
+import { useConnections, useCreateConnection, useInstitutions, useSyncAccount } from "@/hooks/useConnections"; import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 const schema = z.object({
     name: z.string().min(1),
     type: z.string().min(1),
-    openingBalance: z.coerce.number().optional(),
+    openingBalance: z.number().optional(),
 });
 type Form = z.infer<typeof schema>;
 
 export default function AccountsPage() {
+    const accounts = useAccounts();
+    const inst = useInstitutions();
+    const sync = useSyncAccount();
+    const connections = useConnections();
     const { list, create } = useAccounts();
-    const f = useForm<Form>({ resolver: zodResolver(schema), defaultValues: { name: "", type: "CHECKING" } });
+    const f = useForm<Form>({
+        resolver: zodResolver(schema),
+        defaultValues: { name: "", type: "CHECKING", openingBalance: undefined },
+    });
 
     return (
         <div className="space-y-6">
@@ -34,8 +41,17 @@ export default function AccountsPage() {
                     <option>CASH</option>
                     <option>OTHER</option>
                 </select>
-                <input className="border rounded px-3 py-2" placeholder="Opening balance" {...f.register("openingBalance")} />
-                <button className="border rounded px-3 py-2" type="submit" disabled={create.isPending}>Create</button>
+
+                <input
+                    type="number"
+                    className="border rounded px-3 py-2"
+                    placeholder="Opening balance"
+                    {...f.register("openingBalance", { valueAsNumber: true })}
+                />
+
+                <button className="border rounded px-3 py-2" type="submit" disabled={create.isPending}>
+                    Create
+                </button>
             </form>
 
             <ul className="divide-y">
@@ -49,6 +65,39 @@ export default function AccountsPage() {
                     </li>
                 ))}
             </ul>
+            <div className="border rounded p-4 space-y-3">
+                <h2 className="font-semibold">Connect a mock bank</h2>
+                <div className="flex gap-2 flex-wrap">
+                    {inst.data?.map(i => (
+                        <button key={i.id} className="border rounded px-3 py-2"
+                            onClick={() => create.mutate(i.id)} disabled={create.isPending}>
+                            {i.logo} {i.name}
+                        </button>
+                    ))}
+                </div>
+
+                <div>
+                    <h3 className="font-medium mt-2 mb-1">Connections</h3>
+                    <ul className="text-sm list-disc pl-5">
+                        {connections.data?.map((c: any) => (
+                            <li key={c.id}>{c.institutionId} · {new Date(c.createdAt).toLocaleString()}</li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
+
+            <div className="border rounded p-4 space-y-2">
+                <h2 className="font-semibold">Sync an account</h2>
+                <div className="flex gap-2 flex-wrap">
+                    {accounts.list.data?.map(a => (
+                        <button key={a.id} className="border rounded px-3 py-2"
+                            onClick={() => sync.mutate(a.id)} disabled={sync.isPending}>
+                            Sync {a.name}
+                        </button>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }
+

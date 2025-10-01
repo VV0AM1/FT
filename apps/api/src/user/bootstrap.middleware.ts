@@ -5,15 +5,20 @@ import { Request, Response, NextFunction } from "express";
 @Injectable()
 export class BootstrapUserMiddleware implements NestMiddleware {
     constructor(private prisma: PrismaService) { }
+
     async use(req: Request, _res: Response, next: NextFunction) {
         const email = req.header("x-user-email");
+        const r = req as Request & { userEmail?: string; userId?: string };
+
         if (email) {
-            await this.prisma.user.upsert({
+            const user = await this.prisma.user.upsert({
                 where: { email },
                 update: {},
                 create: { email },
+                select: { id: true, email: true },
             });
-            (req as any).userEmail = email;
+            r.userEmail = user.email;
+            r.userId = user.id;
         }
         next();
     }

@@ -29,5 +29,10 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
-  }
+  },
+  "include": [
+    "src",
+    "prisma",
+    "src/types/**/*.d.ts"
+  ]
 }

@@ -5,6 +5,9 @@ import Providers from "./providers";
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+      </head>
       <body className="min-h-screen grid grid-rows-[auto_1fr_auto]">
         <header className="sticky top-0 border-b bg-white/60 backdrop-blur">
           <div className="mx-auto max-w-4xl p-3 flex items-center gap-3">

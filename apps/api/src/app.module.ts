@@ -8,6 +8,13 @@ import { BootstrapUserMiddleware } from "./user/bootstrap.middleware";
 import { CategoriesModule } from "./categories/categories.module";
 import { RulesModule } from "./rules/rules.module";
 import { AccountsModule } from "./accounts/accounts.module";
+import { ImportsModule } from "./imports/imports.module";
+import { QueueModule } from "./queue/queue.module";
+import { S3Module } from "./s3/s3.module";
+import { TransactionsModule } from "./transactions/transactions.module"
+import { CacheModule } from "./cache";
+import { AnalyticsModule } from "./analytics/analytics.module";
+import { ConnectionsModule } from "./connections/connections.module"
 
 @Module({
   imports: [
@@ -24,6 +31,13 @@ import { AccountsModule } from "./accounts/accounts.module";
     CategoriesModule,
     RulesModule,
     AccountsModule,
+    S3Module,
+    QueueModule,
+    ImportsModule,
+    TransactionsModule,
+    CacheModule,
+    AnalyticsModule,
+    ConnectionsModule
   ],
   providers: [BootstrapUserMiddleware],
 })

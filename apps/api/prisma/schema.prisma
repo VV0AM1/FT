@@ -8,80 +8,133 @@ datasource db {
 }
 
 model User {
-  id           String         @id @default(cuid())
-  email        String         @unique
-  name         String?
-  image        String?
-  createdAt    DateTime       @default(now())
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  createdAt DateTime @default(now())
+
   accounts     Account[]
   categories   Category[]
-  rules        Rule[]
-  transactions Transaction[]  @relation("UserTransactions")
+  rules        Rule[] // ← references Rule
+  transactions Transaction[] @relation("UserTransactions")
   importFiles  ImportFile[]
-}
-
-model Account {
-  id           String         @id @default(cuid())
-  userId       String
-  user         User           @relation(fields: [userId], references: [id])
-  name         String
-  type         String
-  createdAt    DateTime       @default(now())
-  balance      Decimal        @default(0) @db.Decimal(14,2)
-  transactions Transaction[]
-  @@index([userId])
+  connections  Connection[]
 }
 
 model Category {
-  id           String         @id @default(cuid())
-  userId       String
-  user         User           @relation(fields: [userId], references: [id])
-  name         String
-  parentId     String?
-  createdAt    DateTime       @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  parentId  String?
+  createdAt DateTime @default(now())
+
   transactions Transaction[]
-  rules        Rule[]
+  rules        Rule[] // ← references Rule
+
   @@unique([userId, name])
 }
 
+model Account {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  name    String
+  type    String
+  balance Decimal @default(0) @db.Decimal(14, 2)
+
+  externalId   String?
+  connectionId String?
+  connection   Connection? @relation(fields: [connectionId], references: [id])
+
+  transactions Transaction[]
+
+  createdAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt 
+
+  @@unique([externalId, userId])
+}
+
 model Transaction {
-  id           String        @id @default(cuid())
-  userId       String
-  user         User          @relation("UserTransactions", fields: [userId], references: [id])
-  accountId    String
-  account      Account       @relation(fields: [accountId], references: [id])
-  amount       Decimal       @db.Decimal(14,2)
-  date         DateTime
-  description  String?
-  categoryId   String?
-  category     Category?     @relation(fields: [categoryId], references: [id])
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation("UserTransactions", fields: [userId], references: [id])
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id])
+
+  amount      Decimal  @db.Decimal(14, 2)
+  date        DateTime
+  description String?
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
   importFileId String?
-  importFile   ImportFile?   @relation(fields: [importFileId], references: [id])
-  createdAt    DateTime      @default(now())
+  importFile   ImportFile? @relation(fields: [importFileId], references: [id])
+
+  hash         String
+  balanceAfter Decimal? @db.Decimal(14, 2)
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, accountId, hash])
   @@index([userId, date])
 }
 
 model Rule {
-  id         String    @id @default(cuid())
-  userId     String
-  user       User      @relation(fields: [userId], references: [id])
-  contains   String
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  contains String
+  isRegex  Boolean @default(false)
+  priority Int     @default(100) // lower = higher priority
+
   categoryId String
-  category   Category  @relation(fields: [categoryId], references: [id])
-  active     Boolean   @default(true)
-  createdAt  DateTime  @default(now())
-  @@index([userId, active])
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([userId, active, priority])
 }
 
 model ImportFile {
-  id           String         @id @default(cuid())
-  userId       String
-  user         User           @relation(fields: [userId], references: [id])
-  filename     String
-  status       ImportStatus   @default(PENDING)
-  uploadedAt   DateTime       @default(now())
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+  filename    String
+  key         String // ← use 'key' (simplest). If you used 'objectKey' instead, stick to that consistently.
+  size        Int
+  contentType String
+  status      ImportStatus @default(PENDING)
+  uploadedAt  DateTime     @default(now())
+
+  // Day 5 summary:
+  processedAt DateTime?
+  inserted    Int       @default(0)
+  updated     Int       @default(0)
+  skipped     Int       @default(0)
+  totals      Json?
+
   transactions Transaction[]
+
   @@index([userId])
+}
+
+model Connection {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  institutionId String
+  accessToken   String
+  createdAt     DateTime @default(now())
+
+  accounts Account[]
 }
 
 enum ImportStatus {
