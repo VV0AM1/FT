@@ -16,10 +16,14 @@ model User {
 
   accounts     Account[]
   categories   Category[]
-  rules        Rule[] // ← references Rule
+  rules        Rule[]
   transactions Transaction[] @relation("UserTransactions")
   importFiles  ImportFile[]
   connections  Connection[]
+  Budget       Budget[]
+
+  notificationPref     NotificationPref?
+  webPushSubscriptions WebPushSubscription[]
 }
 
 model Category {
@@ -32,6 +36,7 @@ model Category {
 
   transactions Transaction[]
   rules        Rule[] // ← references Rule
+  Budget       Budget[]
 
   @@unique([userId, name])
 }
@@ -50,9 +55,9 @@ model Account {
   connection   Connection? @relation(fields: [connectionId], references: [id])
 
   transactions Transaction[]
-
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt 
+  budgets      Budget[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @default(now()) @updatedAt
 
   @@unique([externalId, userId])
 }
@@ -135,6 +140,66 @@ model Connection {
   createdAt     DateTime @default(now())
 
   accounts Account[]
+}
+
+enum BudgetPeriod {
+  MONTH
+  YEAR
+}
+
+model Budget {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  // Optional: budget can be overall (null) or per category
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  period BudgetPeriod
+  amount Decimal      @db.Decimal(14, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Account   Account? @relation(fields: [accountId], references: [id])
+  accountId String?
+
+  @@index([userId, categoryId, period])
+}
+
+model NotificationPref {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // budget alerts
+  budgetAlertsEnabled Boolean @default(true)
+  threshold80Enabled  Boolean @default(true)
+  threshold100Enabled Boolean @default(true)
+
+  // email
+  emailEnabled Boolean @default(true)
+
+  // web push
+  webPushEnabled Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId])
+}
+
+model WebPushSubscription {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  endpoint  String
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, endpoint])
 }
 
 enum ImportStatus {
