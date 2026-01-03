@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Queue } from "bullmq";
-import { NOTIFICATIONS_QUEUE } from "../queue/queue.module";
+import { NOTIFICATIONS_QUEUE_TOKEN } from "../queue/queue.module";
 import { BudgetPeriod, Prisma } from "@prisma/client";
 
 @Injectable()
@@ -9,7 +9,7 @@ export class BudgetAlertService {
     private readonly log = new Logger(BudgetAlertService.name);
     constructor(
         private prisma: PrismaService,
-        @Inject("NOTIFICATIONS_QUEUE") private queue: Queue
+        @Inject(NOTIFICATIONS_QUEUE_TOKEN) private queue: Queue
     ) { }
 
     private currentRange(period: BudgetPeriod) {
@@ -22,6 +22,12 @@ export class BudgetAlertService {
         const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
         const to = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
         return { from, to };
+    }
+
+    async checkByEmail(email: string) {
+        const user = await this.prisma.user.findUnique({ where: { email } });
+        if (!user) return { ok: false, error: "user_not_found" };
+        return this.checkUserBudgets(user.id);
     }
 
     async checkUserBudgets(userId: string) {
@@ -53,8 +59,8 @@ export class BudgetAlertService {
       `);
 
             const spent = Number((rows?.[0] as any)?.spend ?? 0);
-            const amount = Number(b.amount);
-            if (amount <= 0) continue;
+            const amount = (b.amount as any).toNumber?.() ?? Number(b.amount);
+            if (!amount || amount <= 0) continue;
 
             const pct = (spent / amount) * 100;
             const name = b.category?.name ?? "All categories";

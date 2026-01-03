@@ -16,7 +16,7 @@ import { CacheModule } from "./cache";
 import { AnalyticsModule } from "./analytics/analytics.module";
 import { ConnectionsModule } from "./connections/connections.module"
 import { BudgetsModule } from "./budgets/budgets.module";
-
+import { NotificationsModule } from "./notifications/notifications.module";
 
 @Module({
   imports: [
@@ -40,7 +40,8 @@ import { BudgetsModule } from "./budgets/budgets.module";
     CacheModule,
     AnalyticsModule,
     ConnectionsModule,
-    BudgetsModule
+    BudgetsModule,
+    NotificationsModule
   ],
   providers: [BootstrapUserMiddleware],
 })
