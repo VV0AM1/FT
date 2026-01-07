@@ -6,6 +6,10 @@ export default withAuth({
 
 export const config = {
     matcher: [
-        '/((?!api|_next/static|_next/image|favicon.ico|manifest.json|icons/.*|sw.js).*)',
+        '/dashboard/:path*',
+        '/reports/:path*',
+        '/accounts/:path*',
+        '/settings/:path*',
+        '/transactions/:path*',
     ],
 };

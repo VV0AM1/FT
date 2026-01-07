@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-const API_BASE = process.env.API_BASE_URL ?? "http://localhost:4000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:4000";
 const hopByHop = new Set(["connection", "keep-alive", "transfer-encoding", "upgrade"]);
 
 export async function handler(

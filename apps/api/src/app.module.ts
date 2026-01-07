@@ -8,6 +8,7 @@ import { BootstrapUserMiddleware } from "./user/bootstrap.middleware";
 import { CategoriesModule } from "./categories/categories.module";
 import { RulesModule } from "./rules/rules.module";
 import { AccountsModule } from "./accounts/accounts.module";
+import { BankSyncModule } from "./bank-sync/bank-sync.module";
 import { ImportsModule } from "./imports/imports.module";
 import { QueueModule } from "./queue/queue.module";
 import { S3Module } from "./s3/s3.module";
@@ -17,6 +18,13 @@ import { AnalyticsModule } from "./analytics/analytics.module";
 import { ConnectionsModule } from "./connections/connections.module"
 import { BudgetsModule } from "./budgets/budgets.module";
 import { NotificationsModule } from "./notifications/notifications.module";
+import { AiModule } from "./ai/ai.module";
+import { DocumentsModule } from "./documents/documents.module";
+import { ChatModule } from "./chat/chat.module";
+import { AuthModule } from "./auth/auth.module";
+import { MailModule } from "./mail/mail.module";
+import { BullModule } from "@nestjs/bullmq";
+import { ConfigService } from "@nestjs/config";
 
 @Module({
   imports: [
@@ -33,6 +41,7 @@ import { NotificationsModule } from "./notifications/notifications.module";
     CategoriesModule,
     RulesModule,
     AccountsModule,
+    BankSyncModule,
     S3Module,
     QueueModule,
     ImportsModule,
@@ -41,7 +50,20 @@ import { NotificationsModule } from "./notifications/notifications.module";
     AnalyticsModule,
     ConnectionsModule,
     BudgetsModule,
-    NotificationsModule
+    NotificationsModule,
+    AiModule,
+    DocumentsModule,
+    ChatModule,
+    MailModule,
+    AuthModule,
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        connection: {
+          url: config.get('REDIS_URL'),
+        },
+      }),
+    }),
   ],
   providers: [BootstrapUserMiddleware],
 })

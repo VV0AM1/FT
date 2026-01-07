@@ -1,14 +1,14 @@
 version: "3.9"
 services:
   db:
-    image: postgres:15
+    image: pgvector/pgvector:pg15
     container_name: fin-postgres
     environment:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app
       POSTGRES_DB: fin
     ports:
-      - "5434:5432"           
+      - "5434:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -16,7 +16,7 @@ services:
     image: redis:7-alpine
     container_name: fin-redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
 
   localstack:
     image: localstack/localstack:latest

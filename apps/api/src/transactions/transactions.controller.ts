@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { Controller, Get, Query, Delete, Param, Patch, Body, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CurrentUserId } from "../auth/current-user-id.decorator";
 
@@ -35,5 +35,28 @@ export class TransactionsController {
 
         const nextCursor = items.length > take ? items[take].id : null;
         return { items: items.slice(0, take), nextCursor };
+    }
+    @Delete(":id")
+    async delete(@CurrentUserId() userId: string, @Param("id") id: string) {
+        // Ensure user owns transaction
+        const count = await this.prisma.transaction.count({ where: { id, userId } });
+        if (count === 0) throw new NotFoundException("Transaction not found");
+
+        return this.prisma.transaction.delete({ where: { id } });
+    }
+
+    @Patch(":id")
+    async update(
+        @CurrentUserId() userId: string,
+        @Param("id") id: string,
+        @Body() body: { amount?: number; description?: string; categoryId?: string; date?: string }
+    ) {
+        const count = await this.prisma.transaction.count({ where: { id, userId } });
+        if (count === 0) throw new NotFoundException("Transaction not found");
+
+        return this.prisma.transaction.update({
+            where: { id },
+            data: body
+        });
     }
 }
